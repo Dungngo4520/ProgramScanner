@@ -3,6 +3,8 @@
 #include <time.h>
 #include <vector>
 #include <conio.h>
+#include <regex>
+
 
 using namespace std;
 
@@ -43,3 +45,4 @@ void printProgramInfo(vector<ProgramInfo> pList);
 void freeMemory(vector<ProgramInfo> pList);
 char *toJson(ProgramInfo p);
 void writeLog(const char fileName[], ScanItem scanItem);
+bool isMatch(char* string, char* pattern);

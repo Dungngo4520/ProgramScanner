@@ -15,8 +15,8 @@ int main(int argc, char const* argv[]) {
 	do {
 		printf("Search for Program: ");
 		char* name = (char*)calloc(MAX_PATH, sizeof(char));
-		scanf_s("%s", name, MAX_PATH);
-		printf("\n");
+		fgets(name, MAX_PATH, stdin);
+		name[strlen(name) - 1] = '\0';
 
 		ScanItem scanItem = {};
 		time_t t = time(NULL);
@@ -45,7 +45,7 @@ int main(int argc, char const* argv[]) {
 		printf("Found %d programs in %f second\n", p.size(), scanItem.scanSeconds);
 		printf("Result is saved in output.txt\n\n");
 
-		
+
 		printf("Press any key to continue or ESC to exit...\n");
 	} while (_getch() != 27);
 
@@ -99,7 +99,7 @@ vector<ProgramInfo> searchProgramInfo64(char* name) {
 			// entry must have dislayName
 			displayName = (char*)calloc(MAX_KEY_LEN, sizeof(char));
 			bufferSize = MAX_KEY_LEN * sizeof(char);
-			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && strstr(displayName, name) != NULL) {
+			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && isMatch(displayName, name) != NULL) {
 
 				ProgramInfo p;
 				init(&p);
@@ -186,7 +186,7 @@ vector<ProgramInfo> searchProgramInfo32(char* name) {
 			displayName = (char*)calloc(MAX_KEY_LEN, sizeof(char));
 			bufferSize = MAX_KEY_LEN * sizeof(char);
 			// entry must have displayName
-			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && strstr(displayName, name) != NULL) {
+			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && isMatch(displayName, name) != NULL) {
 
 				ProgramInfo p;
 				init(&p);
@@ -313,4 +313,11 @@ char* toJson(ProgramInfo p) {
 		sprintf_s(json, 1024, "{\"name\":\"%s\",\"version\":\"%s\",\"publisher\":\"%s\",\"installDate\":\"%d/%d/%d\",\"size\":%d}", p.name, p.version, p.publisher, p.installDate.day, p.installDate.month, p.installDate.year, p.size);
 	}
 	return json;
+}
+
+bool isMatch(char* string, char* pattern) {	
+	regex reg(pattern, regex_constants::icase);
+	cmatch cmatch;
+
+	return regex_search(string, cmatch, reg);
 }
