@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <time.h>
 #include <vector>
+#include <conio.h>
 
 using namespace std;
 
@@ -35,11 +36,10 @@ BOOL ProgramInfo::operator==(ProgramInfo &other) {
            size == other.size;
 }
 
-vector<ProgramInfo> getProgramInfo64();
-vector<ProgramInfo> getProgramInfo32();
+vector<ProgramInfo> searchProgramInfo64(char* name);
+vector<ProgramInfo> searchProgramInfo32(char* name);
 Date parseDate(char *string);
 void printProgramInfo(vector<ProgramInfo> pList);
 void freeMemory(vector<ProgramInfo> pList);
 char *toJson(ProgramInfo p);
-char *toJson(ScanItem item);
 void writeLog(const char fileName[], ScanItem scanItem);

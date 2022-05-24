@@ -11,33 +11,50 @@ void init(ProgramInfo* p) {
 }
 
 int main(int argc, char const* argv[]) {
-	ScanItem scanItem = {};
-	time_t t = time(NULL);
 
-	// get scan time
-	clock_t start = clock();
+	do {
+		printf("Search for Program: ");
+		char* name = (char*)calloc(MAX_PATH, sizeof(char));
+		scanf_s("%s", name, MAX_PATH);
+		printf("\n");
 
-	vector<ProgramInfo> p = getProgramInfo64();
-	vector<ProgramInfo> p32 = getProgramInfo32();
-	scanItem.scanSeconds = double(clock() - start) / CLOCKS_PER_SEC;
+		ScanItem scanItem = {};
+		time_t t = time(NULL);
 
-	// get scan date
-	scanItem.scanDate = (char*)calloc(26, sizeof(char));
-	if (scanItem.scanDate != 0) {
-		ctime_s(scanItem.scanDate, 26, &t);
-		scanItem.scanDate[strlen(scanItem.scanDate) - 1] = '\0';
-	}
+		// get scan time
+		clock_t start = clock();
 
-	//merge 64bit and 32bit programs list
-	p.insert(p.end(), p32.begin(), p32.end());
-	scanItem.pList = p;
+		vector<ProgramInfo> p = searchProgramInfo64(name);
+		vector<ProgramInfo> p32 = searchProgramInfo32(name);
+		scanItem.scanSeconds = double(clock() - start) / CLOCKS_PER_SEC;
 
-	writeLog("output.txt", scanItem);
+		// get scan date
+		scanItem.scanDate = (char*)calloc(26, sizeof(char));
+		if (scanItem.scanDate != 0) {
+			ctime_s(scanItem.scanDate, 26, &t);
+			scanItem.scanDate[strlen(scanItem.scanDate) - 1] = '\0';
+		}
+
+		//merge 64bit and 32bit programs list
+		p.insert(p.end(), p32.begin(), p32.end());
+		scanItem.pList = p;
+
+		writeLog("output.txt", scanItem);
+
+		printProgramInfo(p);
+		printf("Found %d programs in %f second\n", p.size(), scanItem.scanSeconds);
+		printf("Result is saved in output.txt\n\n");
+
+		
+		printf("Press any key to continue or ESC to exit...\n");
+	} while (_getch() != 27);
+
+
 
 	return 0;
 }
 
-vector<ProgramInfo> getProgramInfo64() {
+vector<ProgramInfo> searchProgramInfo64(char* name) {
 	HKEY hUninstallKey = NULL;
 	HKEY hAppKey = NULL;
 	char root64[] = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -82,7 +99,7 @@ vector<ProgramInfo> getProgramInfo64() {
 			// entry must have dislayName
 			displayName = (char*)calloc(MAX_KEY_LEN, sizeof(char));
 			bufferSize = MAX_KEY_LEN * sizeof(char);
-			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "") {
+			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && strstr(displayName, name) != NULL) {
 
 				ProgramInfo p;
 				init(&p);
@@ -124,7 +141,7 @@ vector<ProgramInfo> getProgramInfo64() {
 	RegCloseKey(hUninstallKey);
 	return pList;
 }
-vector<ProgramInfo> getProgramInfo32() {
+vector<ProgramInfo> searchProgramInfo32(char* name) {
 	HKEY hUninstallKey = NULL;
 	HKEY hAppKey = NULL;
 	char root32[] = "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -169,7 +186,7 @@ vector<ProgramInfo> getProgramInfo32() {
 			displayName = (char*)calloc(MAX_KEY_LEN, sizeof(char));
 			bufferSize = MAX_KEY_LEN * sizeof(char);
 			// entry must have displayName
-			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "") {
+			if (RegQueryValueExA(hAppKey, "DisplayName", NULL, &dwType, (LPBYTE)displayName, &bufferSize) == ERROR_SUCCESS && displayName != "" && strstr(displayName, name) != NULL) {
 
 				ProgramInfo p;
 				init(&p);
